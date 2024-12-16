@@ -12,7 +12,7 @@ st.write("# Web App Frameworks: An Introduction to Streamlit")
 # Introduction section
 st.write("## Introduction")
 st.write(""" 
-Welcome to this presentation on web app frameworks, with a special focus on Streamlit. 
+Welcome. In this presentation we're going to cover basic web app frameworks, with a special focus on Streamlit. 
 By the end of this session, you will understand what web app frameworks are, their general uses and accessibility, 
 and how to set up and use Streamlit to create interactive web applications.
 """)
