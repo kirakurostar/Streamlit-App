@@ -29,7 +29,7 @@ st.markdown("""
 st.sidebar.title("Navigation")
 page = st.sidebar.selectbox(
     "Choose a page", 
-    ["Home","Generalities About Web App Frameworks", "Setting Up and Using Streamlit", "Data Visualization", "Interactive Widgets", "Media Elements", "Deployment Guide", "Hosting Platforms"]
+    ["Home","Generalities About Web App Frameworks", "Setting Up and Using Streamlit", "Data Exploration", "Data Visualization", "Interactive Widgets", "Media Elements", "Deployment Guide", "Hosting Platforms"]
 )
 
 # Main content
@@ -156,6 +156,175 @@ elif page == "Setting Up and Using Streamlit":
     chart = alt.Chart(data).mark_line().encode(x='x', y='y')
     st.altair_chart(chart, use_container_width=True)
     ```
+    """)
+elif page == "Data Exploration":
+    st.title("Data Exploration with Streamlit")
+    
+    st.markdown("""
+    This section demonstrates how to load, explore, and visualize datasets using 
+    Streamlit's features. We'll focus on analyzing log files and creating 
+    interactive visualizations.
+    """)
+    
+    # 1. File Upload Section
+    st.header("1. Upload a Log File")
+    st.markdown("""
+    Upload your CSV file containing log data. The app will display a preview 
+    and provide various analysis options.
+    """)
+    
+    uploaded_file = st.file_uploader("Upload a log file (CSV format)", type="csv")
+    
+    if uploaded_file is not None:
+        try:
+            # Reading the log file
+            df = pd.read_csv(uploaded_file)
+            
+            # Basic file information
+            st.success("File successfully uploaded!")
+            st.info(f"Number of records: {len(df)}")
+            st.info(f"Number of columns: {len(df.columns)}")
+            
+            # Preview of the data
+            st.subheader("Preview of the log data")
+            st.dataframe(df.head())
+            
+            # 2. Log File Summary
+            st.header("2. Log File Summary")
+            
+            # Numeric summary
+            st.subheader("Numeric Data Summary")
+            st.write(df.describe())
+            
+            # Column information
+            st.subheader("Column Information")
+            col_info = pd.DataFrame({
+                'Data Type': df.dtypes,
+                'Non-Null Count': df.count(),
+                'Null Count': df.isnull().sum(),
+                'Unique Values': df.nunique()
+            })
+            st.dataframe(col_info)
+            
+            # 3. Data Visualization
+            st.header("3. Data Visualization")
+            
+            # Select visualization type
+            viz_type = st.selectbox(
+                "Choose visualization type",
+                ["Histogram", "Bar Chart", "Line Chart", "Box Plot"]
+            )
+            
+            # Select column to visualize
+            numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
+            categorical_columns = df.select_dtypes(include=['object']).columns
+            
+            if viz_type in ["Histogram", "Box Plot"]:
+                selected_column = st.selectbox(
+                    "Choose a numeric column to visualize",
+                    numeric_columns
+                )
+            else:
+                selected_column = st.selectbox(
+                    "Choose a column to visualize",
+                    df.columns
+                )
+            
+            # Create visualization
+            fig = plt.figure(figsize=(10, 6))
+            
+            if viz_type == "Histogram":
+                plt.hist(df[selected_column].dropna(), bins=20, 
+                        color='skyblue', edgecolor='black')
+                plt.title(f"Histogram of {selected_column}")
+                plt.xlabel(selected_column)
+                plt.ylabel("Frequency")
+                
+            elif viz_type == "Bar Chart":
+                value_counts = df[selected_column].value_counts()[:20]  # Top 20 values
+                plt.bar(value_counts.index, value_counts.values, 
+                       color='skyblue', edgecolor='black')
+                plt.xticks(rotation=45)
+                plt.title(f"Bar Chart of {selected_column}")
+                plt.xlabel(selected_column)
+                plt.ylabel("Count")
+                
+            elif viz_type == "Line Chart":
+                if st.checkbox("Use date/time index"):
+                    date_columns = df.select_dtypes(include=['datetime64']).columns
+                    if len(date_columns) > 0:
+                        date_column = st.selectbox("Select date column", date_columns)
+                        df.set_index(date_column, inplace=True)
+                plt.plot(df[selected_column], color='skyblue')
+                plt.title(f"Line Chart of {selected_column}")
+                plt.xticks(rotation=45)
+                
+            elif viz_type == "Box Plot":
+                plt.boxplot(df[selected_column].dropna())
+                plt.title(f"Box Plot of {selected_column}")
+                plt.ylabel(selected_column)
+            
+            st.pyplot(fig)
+            
+            # 4. Data Filtering
+            st.header("4. Data Filtering")
+            
+            # Column selection for filtering
+            filter_column = st.selectbox(
+                "Choose a column to filter",
+                df.columns,
+                key='filter_column'
+            )
+            
+            # Value selection for filtering
+            unique_values = df[filter_column].dropna().unique()
+            selected_values = st.multiselect(
+                "Select values to filter by",
+                unique_values
+            )
+            
+            if selected_values:
+                filtered_df = df[df[filter_column].isin(selected_values)]
+                st.write(f"Filtered data ({len(filtered_df)} records):")
+                st.dataframe(filtered_df)
+                
+                # Export filtered data
+                if st.button("Export Filtered Data"):
+                    csv = filtered_df.to_csv(index=False)
+                    st.download_button(
+                        label="Download CSV",
+                        data=csv,
+                        file_name="filtered_data.csv",
+                        mime="text/csv"
+                    )
+            
+            # 5. Advanced Analysis
+            st.header("5. Advanced Analysis")
+            
+            # Correlation matrix for numeric columns
+            if len(numeric_columns) > 1:
+                st.subheader("Correlation Matrix")
+                corr_matrix = df[numeric_columns].corr()
+                fig, ax = plt.subplots(figsize=(10, 8))
+                plt.imshow(corr_matrix, cmap='coolwarm', aspect='auto')
+                plt.colorbar()
+                plt.xticks(range(len(corr_matrix.columns)), corr_matrix.columns, rotation=45)
+                plt.yticks(range(len(corr_matrix.columns)), corr_matrix.columns)
+                st.pyplot(fig)
+            
+        except Exception as e:
+            st.error(f"Error processing file: {str(e)}")
+            
+    else:
+        st.info("Please upload a CSV file to begin analysis")
+    
+    # Additional information and tips
+    st.sidebar.header("Tips")
+    st.sidebar.markdown("""
+    - Make sure your CSV file is properly formatted
+    - Large files may take longer to process
+    - Use the filtering options to focus on specific data
+    - Export filtered data for further analysis
     """)
 
 elif page == "Data Visualization":
