@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import time
 from PIL import Image
+import matplotlib.pyplot as plt
 
 # Set page config
 st.set_page_config(
@@ -29,7 +30,7 @@ st.markdown("""
 st.sidebar.title("Navigation")
 page = st.sidebar.selectbox(
     "Choose a page", 
-    ["Home","Generalities About Web App Frameworks", "Setting Up and Using Streamlit", "Data Exploration", "Data Visualization", "Interactive Widgets", "Media Elements", "Deployment Guide", "Hosting Platforms"]
+    ["Home","Generalities About Web App Frameworks", "Setting Up and Using Streamlit", "Interactive Widgets", "Media Elements", "Data Exploration", "Data Visualization", "Deployment Guide", "Hosting Platforms", "Quiz"]
 )
 
 # Main content
@@ -640,6 +641,161 @@ elif page == "Hosting Platforms":
     💡 **Tip**: Start with Streamlit Cloud for simple apps and migrate to more robust 
     solutions as your needs grow.
     """)
+elif page == "Quiz":
+    st.title("🧠 Test Your Knowledge: Streamlit Quiz")
+
+    # Introduction
+    st.write("""
+    This quiz will test your understanding of Streamlit concepts, syntax, and best practices.  
+    Answer the questions below and see how well you've mastered the material!
+    """)
+
+    # Question 1
+    st.subheader("1. What is Streamlit primarily used for?")
+    q1 = st.radio(
+        "Select the correct answer:",
+        ["Choose an option", 
+        "Building mobile applications", 
+        "Creating data-driven and interactive web apps", 
+        "Developing backend APIs", 
+        "Game development"]
+    )
+    if q1 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q1 == "Creating data-driven and interactive web apps":
+        st.success("✅ Correct!")
+    else:
+        st.error("❌ Incorrect. Streamlit is used for building data-driven and interactive web apps.")
+
+    # Question 2
+    st.subheader("2. Which function is used to display a dataframe in Streamlit?")
+    q2 = st.radio(
+        "Choose the correct function:",
+        ["Choose an option", "st.write()", "st.dataframe()", "st.table()", "st.display()"]
+    )
+    if q2 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q2 == "st.dataframe()":
+        st.success("✅ Correct! st.dataframe() is designed specifically for displaying dataframes.")
+    else:
+        st.error("❌ Incorrect. The correct answer is st.dataframe().")
+
+    # Question 3
+    st.subheader("3. Which Streamlit widget allows users to select numeric values?")
+    q3 = st.selectbox(
+        "Pick the correct widget:",
+        ["Choose an option", "st.radio()", "st.slider()", "st.checkbox()", "st.text_input()"]
+    )
+    if q3 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q3 == "st.slider()":
+        st.success("✅ Correct! st.slider() lets users select numeric or date ranges.")
+    else:
+        st.error("❌ Incorrect. The correct answer is st.slider().")
+
+    # Question 4
+    st.subheader("4. What are the benefits of using Streamlit?")
+    q4 = st.multiselect(
+        "Select all that apply:",
+        [
+            "Simple and quick to set up",
+            "Requires extensive front-end coding",
+            "Interactive widgets with minimal effort",
+            "Data visualization made easy",
+            "Compatible only with JavaScript"
+        ]
+    )
+    if not q4:
+        st.warning("⚠ Please select at least one answer.")
+    elif set(q4) == {"Simple and quick to set up", "Interactive widgets with minimal effort", "Data visualization made easy"}:
+        st.success("✅ Correct! Streamlit is simple, interactive, and great for data visualization.")
+    else:
+        st.error("❌ Incorrect. The correct answers are: Simple and quick to set up, Interactive widgets with minimal effort, and Data visualization made easy.")
+
+    # Question 5
+    st.subheader("5. Which function is used to add a text box for user input?")
+    q5 = st.radio(
+        "Choose the correct function:",
+        ["Choose an option", "st.button()", "st.text_input()", "st.radio()", "st.write()"]
+    )
+    if q5 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q5 == "st.text_input()":
+        st.success("✅ Correct! st.text_input() is used to add a text box for user input.")
+    else:
+        st.error("❌ Incorrect. The correct answer is st.text_input().")
+
+    # Question 6
+    st.subheader("6. True or False: Streamlit apps require extensive knowledge of HTML, CSS, and JavaScript.")
+    q6 = st.radio(
+        "Select your answer:",
+        ["Choose an option", "True", "False"]
+    )
+    if q6 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q6 == "False":
+        st.success("✅ Correct! Streamlit simplifies web app development without needing front-end expertise.")
+    else:
+        st.error("❌ Incorrect. The correct answer is False.")
+
+    # Question 7
+    st.subheader("7. What does st.markdown() do?")
+    q7 = st.radio(
+        "Select the best answer:",
+        ["Choose an option", 
+        "Runs a Python script", 
+        "Displays formatted text using Markdown", 
+        "Adds a button to the app", 
+        "Creates a sidebar"]
+    )
+    if q7 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q7 == "Displays formatted text using Markdown":
+        st.success("✅ Correct! st.markdown() is used to display Markdown-formatted text.")
+    else:
+        st.error("❌ Incorrect. The correct answer is: Displays formatted text using Markdown.")
+
+    # Question 8
+    st.subheader("8. Which file format is required to run a Streamlit app?")
+    q8 = st.radio(
+        "Choose the correct answer:",
+        ["Choose an option", "HTML", "Python (.py)", "JavaScript (.js)", "JSON"]
+    )
+    if q8 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q8 == "Python (.py)":
+        st.success("✅ Correct! Streamlit apps are written in Python and use .py files.")
+    else:
+        st.error("❌ Incorrect. The correct answer is Python (.py).")
+
+    # Question 9
+    st.subheader("9. Which function is used to create a sidebar in Streamlit?")
+    q9 = st.radio(
+        "Select the correct function:",
+        ["Choose an option", "st.write()", "st.sidebar()", "st.text_input()", "st.plot()"]
+    )
+    if q9 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q9 == "st.sidebar()":
+        st.success("✅ Correct! st.sidebar() is used to create a sidebar.")
+    else:
+        st.error("❌ Incorrect. The correct answer is st.sidebar().")
+
+    # Question 10
+    st.subheader("10. Which function is used to display a large title in Streamlit?")
+    q10 = st.radio(
+        "Select the correct function:",
+        ["Choose an option", "st.write()", "st.header()", "st.title()"]
+    )
+    if q10 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q10 == "st.title()":
+        st.success("✅ Correct! st.title() is used for large titles.")
+    else:
+        st.error("❌ Incorrect. Try again!")
+
+    # Final Score
+    st.success("🎉 Quiz Complete! How did you do? If you’d like to improve, revisit the topics and try again.")
 
 # Footer
 st.markdown("---")
