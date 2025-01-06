@@ -72,7 +72,7 @@ elif page == "Generalities About Web App Frameworks":
     They provide tools, templates, and pre-built components that allow developers to focus on building functionality 
     rather than starting from scratch.
     """)
-    st.image("images\Why-Should-You-Learn-Streamlit-in-2024.png")
+    st.image("Streamlit\images\Why-Should-You-Learn-Streamlit-in-2024.png")
 
     st.write("##  Popular Frameworks")
     st.write("""
