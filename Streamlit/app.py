@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import time
 from PIL import Image
+import matplotlib.pyplot as plt
 
 # Set page config
 st.set_page_config(
@@ -29,7 +30,7 @@ st.markdown("""
 st.sidebar.title("Navigation")
 page = st.sidebar.selectbox(
     "Choose a page", 
-    ["Home","Generalities About Web App Frameworks", "Setting Up and Using Streamlit", "Data Visualization", "Interactive Widgets", "Media Elements", "Deployment Guide", "Hosting Platforms"]
+    ["Home","Generalities About Web App Frameworks", "Setting Up and Using Streamlit", "Interactive Widgets", "Media Elements", "Data Exploration", "Data Visualization", "Deployment Guide", "Hosting Platforms", "Quiz"]
 )
 
 # Main content
@@ -156,6 +157,175 @@ elif page == "Setting Up and Using Streamlit":
     chart = alt.Chart(data).mark_line().encode(x='x', y='y')
     st.altair_chart(chart, use_container_width=True)
     ```
+    """)
+elif page == "Data Exploration":
+    st.title("Data Exploration with Streamlit")
+    
+    st.markdown("""
+    This section demonstrates how to load, explore, and visualize datasets using 
+    Streamlit's features. We'll focus on analyzing log files and creating 
+    interactive visualizations.
+    """)
+    
+    # 1. File Upload Section
+    st.header("1. Upload a Log File")
+    st.markdown("""
+    Upload your CSV file containing log data. The app will display a preview 
+    and provide various analysis options.
+    """)
+    
+    uploaded_file = st.file_uploader("Upload a log file (CSV format)", type="csv")
+    
+    if uploaded_file is not None:
+        try:
+            # Reading the log file
+            df = pd.read_csv(uploaded_file)
+            
+            # Basic file information
+            st.success("File successfully uploaded!")
+            st.info(f"Number of records: {len(df)}")
+            st.info(f"Number of columns: {len(df.columns)}")
+            
+            # Preview of the data
+            st.subheader("Preview of the log data")
+            st.dataframe(df.head())
+            
+            # 2. Log File Summary
+            st.header("2. Log File Summary")
+            
+            # Numeric summary
+            st.subheader("Numeric Data Summary")
+            st.write(df.describe())
+            
+            # Column information
+            st.subheader("Column Information")
+            col_info = pd.DataFrame({
+                'Data Type': df.dtypes,
+                'Non-Null Count': df.count(),
+                'Null Count': df.isnull().sum(),
+                'Unique Values': df.nunique()
+            })
+            st.dataframe(col_info)
+            
+            # 3. Data Visualization
+            st.header("3. Data Visualization")
+            
+            # Select visualization type
+            viz_type = st.selectbox(
+                "Choose visualization type",
+                ["Histogram", "Bar Chart", "Line Chart", "Box Plot"]
+            )
+            
+            # Select column to visualize
+            numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
+            categorical_columns = df.select_dtypes(include=['object']).columns
+            
+            if viz_type in ["Histogram", "Box Plot"]:
+                selected_column = st.selectbox(
+                    "Choose a numeric column to visualize",
+                    numeric_columns
+                )
+            else:
+                selected_column = st.selectbox(
+                    "Choose a column to visualize",
+                    df.columns
+                )
+            
+            # Create visualization
+            fig = plt.figure(figsize=(10, 6))
+            
+            if viz_type == "Histogram":
+                plt.hist(df[selected_column].dropna(), bins=20, 
+                        color='skyblue', edgecolor='black')
+                plt.title(f"Histogram of {selected_column}")
+                plt.xlabel(selected_column)
+                plt.ylabel("Frequency")
+                
+            elif viz_type == "Bar Chart":
+                value_counts = df[selected_column].value_counts()[:20]  # Top 20 values
+                plt.bar(value_counts.index, value_counts.values, 
+                       color='skyblue', edgecolor='black')
+                plt.xticks(rotation=45)
+                plt.title(f"Bar Chart of {selected_column}")
+                plt.xlabel(selected_column)
+                plt.ylabel("Count")
+                
+            elif viz_type == "Line Chart":
+                if st.checkbox("Use date/time index"):
+                    date_columns = df.select_dtypes(include=['datetime64']).columns
+                    if len(date_columns) > 0:
+                        date_column = st.selectbox("Select date column", date_columns)
+                        df.set_index(date_column, inplace=True)
+                plt.plot(df[selected_column], color='skyblue')
+                plt.title(f"Line Chart of {selected_column}")
+                plt.xticks(rotation=45)
+                
+            elif viz_type == "Box Plot":
+                plt.boxplot(df[selected_column].dropna())
+                plt.title(f"Box Plot of {selected_column}")
+                plt.ylabel(selected_column)
+            
+            st.pyplot(fig)
+            
+            # 4. Data Filtering
+            st.header("4. Data Filtering")
+            
+            # Column selection for filtering
+            filter_column = st.selectbox(
+                "Choose a column to filter",
+                df.columns,
+                key='filter_column'
+            )
+            
+            # Value selection for filtering
+            unique_values = df[filter_column].dropna().unique()
+            selected_values = st.multiselect(
+                "Select values to filter by",
+                unique_values
+            )
+            
+            if selected_values:
+                filtered_df = df[df[filter_column].isin(selected_values)]
+                st.write(f"Filtered data ({len(filtered_df)} records):")
+                st.dataframe(filtered_df)
+                
+                # Export filtered data
+                if st.button("Export Filtered Data"):
+                    csv = filtered_df.to_csv(index=False)
+                    st.download_button(
+                        label="Download CSV",
+                        data=csv,
+                        file_name="filtered_data.csv",
+                        mime="text/csv"
+                    )
+            
+            # 5. Advanced Analysis
+            st.header("5. Advanced Analysis")
+            
+            # Correlation matrix for numeric columns
+            if len(numeric_columns) > 1:
+                st.subheader("Correlation Matrix")
+                corr_matrix = df[numeric_columns].corr()
+                fig, ax = plt.subplots(figsize=(10, 8))
+                plt.imshow(corr_matrix, cmap='coolwarm', aspect='auto')
+                plt.colorbar()
+                plt.xticks(range(len(corr_matrix.columns)), corr_matrix.columns, rotation=45)
+                plt.yticks(range(len(corr_matrix.columns)), corr_matrix.columns)
+                st.pyplot(fig)
+            
+        except Exception as e:
+            st.error(f"Error processing file: {str(e)}")
+            
+    else:
+        st.info("Please upload a CSV file to begin analysis")
+    
+    # Additional information and tips
+    st.sidebar.header("Tips")
+    st.sidebar.markdown("""
+    - Make sure your CSV file is properly formatted
+    - Large files may take longer to process
+    - Use the filtering options to focus on specific data
+    - Export filtered data for further analysis
     """)
 
 elif page == "Data Visualization":
@@ -471,6 +641,161 @@ elif page == "Hosting Platforms":
     💡 **Tip**: Start with Streamlit Cloud for simple apps and migrate to more robust 
     solutions as your needs grow.
     """)
+elif page == "Quiz":
+    st.title("🧠 Test Your Knowledge: Streamlit Quiz")
+
+    # Introduction
+    st.write("""
+    This quiz will test your understanding of Streamlit concepts, syntax, and best practices.  
+    Answer the questions below and see how well you've mastered the material!
+    """)
+
+    # Question 1
+    st.subheader("1. What is Streamlit primarily used for?")
+    q1 = st.radio(
+        "Select the correct answer:",
+        ["Choose an option", 
+        "Building mobile applications", 
+        "Creating data-driven and interactive web apps", 
+        "Developing backend APIs", 
+        "Game development"]
+    )
+    if q1 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q1 == "Creating data-driven and interactive web apps":
+        st.success("✅ Correct!")
+    else:
+        st.error("❌ Incorrect. Streamlit is used for building data-driven and interactive web apps.")
+
+    # Question 2
+    st.subheader("2. Which function is used to display a dataframe in Streamlit?")
+    q2 = st.radio(
+        "Choose the correct function:",
+        ["Choose an option", "st.write()", "st.dataframe()", "st.table()", "st.display()"]
+    )
+    if q2 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q2 == "st.dataframe()":
+        st.success("✅ Correct! st.dataframe() is designed specifically for displaying dataframes.")
+    else:
+        st.error("❌ Incorrect. The correct answer is st.dataframe().")
+
+    # Question 3
+    st.subheader("3. Which Streamlit widget allows users to select numeric values?")
+    q3 = st.selectbox(
+        "Pick the correct widget:",
+        ["Choose an option", "st.radio()", "st.slider()", "st.checkbox()", "st.text_input()"]
+    )
+    if q3 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q3 == "st.slider()":
+        st.success("✅ Correct! st.slider() lets users select numeric or date ranges.")
+    else:
+        st.error("❌ Incorrect. The correct answer is st.slider().")
+
+    # Question 4
+    st.subheader("4. What are the benefits of using Streamlit?")
+    q4 = st.multiselect(
+        "Select all that apply:",
+        [
+            "Simple and quick to set up",
+            "Requires extensive front-end coding",
+            "Interactive widgets with minimal effort",
+            "Data visualization made easy",
+            "Compatible only with JavaScript"
+        ]
+    )
+    if not q4:
+        st.warning("⚠ Please select at least one answer.")
+    elif set(q4) == {"Simple and quick to set up", "Interactive widgets with minimal effort", "Data visualization made easy"}:
+        st.success("✅ Correct! Streamlit is simple, interactive, and great for data visualization.")
+    else:
+        st.error("❌ Incorrect. The correct answers are: Simple and quick to set up, Interactive widgets with minimal effort, and Data visualization made easy.")
+
+    # Question 5
+    st.subheader("5. Which function is used to add a text box for user input?")
+    q5 = st.radio(
+        "Choose the correct function:",
+        ["Choose an option", "st.button()", "st.text_input()", "st.radio()", "st.write()"]
+    )
+    if q5 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q5 == "st.text_input()":
+        st.success("✅ Correct! st.text_input() is used to add a text box for user input.")
+    else:
+        st.error("❌ Incorrect. The correct answer is st.text_input().")
+
+    # Question 6
+    st.subheader("6. True or False: Streamlit apps require extensive knowledge of HTML, CSS, and JavaScript.")
+    q6 = st.radio(
+        "Select your answer:",
+        ["Choose an option", "True", "False"]
+    )
+    if q6 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q6 == "False":
+        st.success("✅ Correct! Streamlit simplifies web app development without needing front-end expertise.")
+    else:
+        st.error("❌ Incorrect. The correct answer is False.")
+
+    # Question 7
+    st.subheader("7. What does st.markdown() do?")
+    q7 = st.radio(
+        "Select the best answer:",
+        ["Choose an option", 
+        "Runs a Python script", 
+        "Displays formatted text using Markdown", 
+        "Adds a button to the app", 
+        "Creates a sidebar"]
+    )
+    if q7 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q7 == "Displays formatted text using Markdown":
+        st.success("✅ Correct! st.markdown() is used to display Markdown-formatted text.")
+    else:
+        st.error("❌ Incorrect. The correct answer is: Displays formatted text using Markdown.")
+
+    # Question 8
+    st.subheader("8. Which file format is required to run a Streamlit app?")
+    q8 = st.radio(
+        "Choose the correct answer:",
+        ["Choose an option", "HTML", "Python (.py)", "JavaScript (.js)", "JSON"]
+    )
+    if q8 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q8 == "Python (.py)":
+        st.success("✅ Correct! Streamlit apps are written in Python and use .py files.")
+    else:
+        st.error("❌ Incorrect. The correct answer is Python (.py).")
+
+    # Question 9
+    st.subheader("9. Which function is used to create a sidebar in Streamlit?")
+    q9 = st.radio(
+        "Select the correct function:",
+        ["Choose an option", "st.write()", "st.sidebar()", "st.text_input()", "st.plot()"]
+    )
+    if q9 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q9 == "st.sidebar()":
+        st.success("✅ Correct! st.sidebar() is used to create a sidebar.")
+    else:
+        st.error("❌ Incorrect. The correct answer is st.sidebar().")
+
+    # Question 10
+    st.subheader("10. Which function is used to display a large title in Streamlit?")
+    q10 = st.radio(
+        "Select the correct function:",
+        ["Choose an option", "st.write()", "st.header()", "st.title()"]
+    )
+    if q10 == "Choose an option":
+        st.warning("⚠ Please choose an answer.")
+    elif q10 == "st.title()":
+        st.success("✅ Correct! st.title() is used for large titles.")
+    else:
+        st.error("❌ Incorrect. Try again!")
+
+    # Final Score
+    st.success("🎉 Quiz Complete! How did you do? If you’d like to improve, revisit the topics and try again.")
 
 # Footer
 st.markdown("---")
